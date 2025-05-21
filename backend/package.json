@@ -1,0 +1,21 @@
+{
+  "name": "pr2-backend",
+  "version": "1.0.0",
+  "description": "Backend for PR2 database connected to frontend and RoboDK",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alex",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "fs-extra": "^11.3.0",
+    "mqtt": "^5.12.0",
+    "pg-promise": "^11.13.0",
+    "qrcode": "^1.5.4"
+  }
+}

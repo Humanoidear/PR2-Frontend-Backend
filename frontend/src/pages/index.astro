@@ -1,0 +1,2795 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// Lucide icons
+import {
+  CirclePlus,
+  Package,
+  User,
+  X,
+  Truck,
+  CheckCircle,
+  BarChart4,
+  Clock,
+  Calendar,
+} from "lucide-astro";
+---
+
+<Layout>
+  <div
+    class="px-10 py-4 w-full flex flex-row justify-between gap-8 fixed z-50"
+  >
+    <span class="flex flex-col items-start px-6 py-3 rounded-3xl backdrop-blur-2xl bg-gray-100/60">
+      <img src="/img/ROBOInventory_logo.png" alt="Logo" class="h-12 translate-y-1" />
+    </span>
+    <span class="p-3 bg-gradient-to-r from-blue-600/90 to-indigo-700/90 backdrop-blur-2xl rounded-3xl flex flex-row items-center gap-3">
+      <button
+        id="enviar-btn"
+        class="px-6 py-3 !m-0 rounded-l-2xl rounded-r-md bg-white text-blue-600 shadow-lg shadow-blue-900/10 text-lg flex flex-row items-center gap-2 font-semibold hover:bg-blue-50 transition-all duration-200"
+      >
+        <CirclePlus class="w-5 h-5" /> Enviar
+      </button>
+      <button
+        id="manage-centers-btn"
+        class="px-6 py-3 !m-0 rounded-md bg-white/10 text-white border border-white/20 text-lg flex flex-row items-center gap-2 font-medium hover:bg-white/20 transition-all duration-200"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+          ></path>
+        </svg> Centros
+      </button>
+      <button
+        id="manage-products-btn"
+        class="px-6 py-3 !m-0 rounded-md rounded-r-2xl bg-white/10 text-white border border-white/20 text-lg flex flex-row items-center gap-2 font-medium hover:bg-white/20 transition-all duration-200"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"></path>
+        </svg> Productos
+      </button>
+      <div class="h-full">
+        <select
+          id="center-select"
+          class="h-full px-6 py-3 rounded-2xl border border-white/20 bg-white/10 text-white text-lg font-medium focus:ring-2 focus:ring-white/30 focus:outline-none transition-all"
+        >
+          <option value="Vera" class="text-gray-800">Campus de Vera</option>
+          <option value="Alcoi" class="text-gray-800">Campus d'Alcoi</option>
+          <option value="Gandia" class="text-gray-800">Campus de Gandia</option>
+        </select>
+      </div>
+    </span>
+  </div>
+
+  <!-- Add this right after the header section, above the main content area -->
+  <div class="fixed bottom-10 right-10 z-40 flex flex-col gap-3">
+    <!-- System Status Card -->
+    <div
+      id="system-status-card"
+      class="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-4 w-72 border border-gray-200"
+    >
+      <h3 class="text-lg font-bold mb-3 flex items-center text-gray-800">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 mr-2 text-blue-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          ></path>
+        </svg>
+        System Status
+      </h3>
+
+      <div class="space-y-2">
+        <!-- MQTT Connection Status -->
+        <div
+          class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg"
+        >
+          <span class="text-sm font-medium text-gray-700">MQTT Connection:</span
+          >
+          <span
+            id="mqtt-status"
+            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200"
+            >Loading...</span
+          >
+        </div>
+
+        <!-- Emergency Stop Status -->
+        <div
+          class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg"
+        >
+          <span class="text-sm font-medium text-gray-700">Emergency Stop:</span>
+          <span
+            id="emergency-status"
+            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200"
+            >Loading...</span
+          >
+        </div>
+
+        <!-- Operation Status -->
+        <div
+          class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg"
+        >
+          <span class="text-sm font-medium text-gray-700"
+            >Current Operation:</span
+          >
+          <span
+            id="operation-status"
+            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200"
+            >Loading...</span
+          >
+        </div>
+
+        <!-- Conveyor 1 Status -->
+        <div
+          class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg"
+        >
+          <span class="text-sm font-medium text-gray-700">Conveyor 1:</span>
+          <span
+            id="conveyor1-status"
+            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200"
+            >Loading...</span
+          >
+        </div>
+
+        <!-- Conveyor 2 Status -->
+        <div
+          class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg"
+        >
+          <span class="text-sm font-medium text-gray-700">Conveyor 2:</span>
+          <span
+            id="conveyor2-status"
+            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200"
+            >Loading...</span
+          >
+        </div>
+
+        <!-- AGV Status -->
+        <div
+          class="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg"
+        >
+          <span class="text-sm font-medium text-gray-700"
+            >AGV Position/State:</span
+          >
+          <span
+            id="agv-status"
+            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200"
+            >Loading...</span
+          >
+        </div>
+      </div>
+
+      <!-- Emergency Stop Reset Button -->
+      <div class="mt-4">
+        <button
+          id="reset-emergency-button"
+          class="w-full py-2.5 px-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg flex items-center justify-center font-medium hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            ></path>
+          </svg>
+          Reset Emergency Stop
+        </button>
+      </div>
+
+      <!-- Toggle Monitor Button -->
+      <div class="mt-2 text-center w-full p-2 rounded-lg bg-gray-100">
+        <button
+          id="toggle-monitor"
+          class="w-full text-center text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center ml-auto"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"></path>
+          </svg>
+          Hide Monitor
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center Management Popup -->
+  <div
+    id="centers-popup"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center hidden z-50 transition-opacity duration-300 backdrop-blur-sm overflow-hidden"
+  >
+    <div
+      class="bg-white rounded-2xl p-0 overflow-hidden w-full max-w-xl shadow-2xl transform transition-all duration-300 scale-100 m-4"
+    >
+      <!-- Header with gradient background -->
+      <div
+        class="bg-gradient-to-r from-indigo-600 to-purple-700 p-7 text-white relative"
+      >
+        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <pattern
+              id="pattern-circles-centers"
+              x="0"
+              y="0"
+              width="50"
+              height="50"
+              patternUnits="userSpaceOnUse"
+              patternContentUnits="userSpaceOnUse"
+            >
+              <circle
+                id="pattern-circle-centers"
+                cx="10"
+                cy="10"
+                r="1.6257413380501518"
+                fill="#fff"></circle>
+            </pattern>
+            <rect
+              id="rect-centers"
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="url(#pattern-circles-centers)"></rect>
+          </svg>
+        </div>
+
+        <div class="flex justify-between items-center relative z-10">
+          <h2 class="text-2xl font-bold flex items-center">
+            <div class="bg-white/20 p-3 rounded-xl mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                ></path>
+              </svg>
+            </div>
+            <span>Gestión de Centros</span>
+          </h2>
+          <button
+            id="close-centers-popup"
+            class="text-white hover:text-gray-200 transition-colors rounded-full bg-white/20 p-2 hover:bg-white/30"
+          >
+            <X />
+          </button>
+        </div>
+        <p class="mt-4 text-indigo-100 pl-[60px]">
+          Añada, edite o elimine centros de distribución
+        </p>
+      </div>
+
+      <div class="p-8">
+        <!-- Centers List -->
+        <div class="mb-6">
+          <h3
+            class="text-lg font-semibold text-gray-700 mb-4 flex items-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2 text-indigo-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              ></path>
+            </svg>
+            Centros Existentes
+          </h3>
+          <div id="centers-list" class="space-y-3">
+            <div class="animate-pulse flex space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div class="rounded-full bg-gray-300 h-10 w-10"></div>
+              <div class="flex-1 space-y-3 py-1">
+                <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div class="space-y-2">
+                  <div class="h-3 bg-gray-300 rounded w-5/6"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add New Center Form -->
+        <div class="border-t pt-6">
+          <h3
+            class="text-lg font-semibold text-gray-700 mb-4 flex items-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Añadir Nuevo Centro
+          </h3>
+          <form id="center-form" class="space-y-4">
+            <div>
+              <label
+                for="center-id"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >ID de Centro</label
+              >
+              <input
+                type="text"
+                id="center-id"
+                name="center-id"
+                placeholder="ej. Alicante"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                for="center-name"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Nombre Completo</label
+              >
+              <input
+                type="text"
+                id="center-name"
+                name="center-name"
+                placeholder="ej. Campus de Alicante"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                id="add-center-btn"
+                class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-lg shadow-md hover:from-indigo-700 hover:to-purple-800 transition-all transform hover:translate-y-[-2px] flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Añadir Centro
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Management Popup -->
+  <div
+    id="products-popup"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center hidden z-50 transition-opacity duration-300 backdrop-blur-sm overflow-hidden"
+  >
+    <div
+      class="bg-white rounded-2xl p-0 overflow-hidden w-full max-w-xl shadow-2xl transform transition-all duration-300 scale-100 m-4"
+    >
+      <!-- Header with gradient background -->
+      <div
+        class="bg-gradient-to-r from-emerald-600 to-teal-700 p-7 text-white relative"
+      >
+        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <pattern
+              id="pattern-circles-products"
+              x="0"
+              y="0"
+              width="50"
+              height="50"
+              patternUnits="userSpaceOnUse"
+              patternContentUnits="userSpaceOnUse"
+            >
+              <circle
+                id="pattern-circle-products"
+                cx="10"
+                cy="10"
+                r="1.6257413380501518"
+                fill="#fff"></circle>
+            </pattern>
+            <rect
+              id="rect-products"
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="url(#pattern-circles-products)"></rect>
+          </svg>
+        </div>
+
+        <div class="flex justify-between items-center relative z-10">
+          <h2 class="text-2xl font-bold flex items-center">
+            <div class="bg-white/20 p-3 rounded-xl mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"
+                ></path>
+              </svg>
+            </div>
+            <span>Gestión de Productos</span>
+          </h2>
+          <button
+            id="close-products-popup"
+            class="text-white hover:text-gray-200 transition-colors rounded-full bg-white/20 p-2 hover:bg-white/30"
+          >
+            <X />
+          </button>
+        </div>
+        <p class="mt-4 text-emerald-100 pl-[60px]">
+          Administre los productos disponibles en el sistema
+        </p>
+      </div>
+
+      <div class="p-8">
+        <!-- Products List with Search -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-700 flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2 text-emerald-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                ></path>
+              </svg>
+              Productos Existentes
+            </h3>
+            <div class="relative">
+              <input
+                type="text"
+                id="product-search"
+                placeholder="Buscar producto..."
+                class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-gray-500 absolute left-3 top-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div
+            id="products-list"
+            class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar"
+          >
+            <div class="animate-pulse flex space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div class="rounded-lg bg-gray-300 h-12 w-12"></div>
+              <div class="flex-1 space-y-3 py-1">
+                <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div class="space-y-2">
+                  <div class="h-3 bg-gray-300 rounded w-5/6"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add New Product Form -->
+        <div class="border-t pt-6">
+          <h3
+            class="text-lg font-semibold text-gray-700 mb-4 flex items-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Añadir Nuevo Producto
+          </h3>
+          <form id="product-form" class="space-y-4">
+            <div>
+              <label
+                for="product-id"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >ID de Producto</label
+              >
+              <input
+                type="text"
+                id="product-id"
+                name="product-id"
+                placeholder="ej. P12345"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                for="product-name"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Nombre del Producto</label
+              >
+              <input
+                type="text"
+                id="product-name"
+                name="product-name"
+                placeholder="ej. Teclado Inalámbrico"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+            <div>
+              <label
+                for="shelf-life"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Vida Útil (días)</label
+              >
+              <input
+                type="number"
+                id="shelf-life"
+                name="shelf-life"
+                min="1"
+                placeholder="ej. 30"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                id="add-product-btn"
+                class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-lg shadow-md hover:from-emerald-700 hover:to-teal-800 transition-all transform hover:translate-y-[-2px] flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Añadir Producto
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="pt-32 px-10 bg-gradient-to-b from-gray-50 to-white min-h-screen">
+    <!-- Dashboard Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+        <BarChart4 class="w-6 h-6 mr-2 text-blue-600" /> Dashboard de Inventario
+      </h1>
+      <div class="flex items-center text-gray-500 font-medium">
+        <Clock class="w-5 h-5 mr-2" /> Actualizado: <span
+          id="last-updated"
+          class="ml-2 text-gray-700"></span>
+      </div>
+    </div>
+
+    <!-- Shipments in transit -->
+    <div
+      class="w-full bg-white rounded-2xl p-6 shadow-xl shadow-blue-900/5 mt-4 border border-gray-100"
+    >
+      <h2 class="text-xl font-bold mb-2 flex items-center text-gray-800">
+        <Truck class="w-6 h-6 mr-2 text-blue-600" /> Envíos en ruta
+      </h2>
+      <p class="text-gray-500 text-sm mb-6">
+        Productos en camino hacia este almacén
+      </p>
+      <div id="repartos-container" class="mt-4">
+        <div class="flex justify-center items-center h-16">
+          <div class="animate-pulse flex items-center space-x-2">
+            <div class="h-3 w-3 bg-blue-400 rounded-full animate-bounce"></div>
+            <div
+              class="h-3 w-3 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"
+            >
+            </div>
+            <div
+              class="h-3 w-3 bg-blue-600 rounded-full animate-bounce [animation-delay:0.4s]"
+            >
+            </div>
+            <span class="text-blue-600 font-medium ml-2"
+              >Cargando envíos...</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items in warehouse -->
+    <div
+      class="w-full bg-white rounded-2xl p-6 shadow-xl shadow-blue-900/5 mt-6 border border-gray-100"
+    >
+      <h2 class="text-xl font-bold mb-2 flex items-center text-gray-800">
+        <CheckCircle class="w-6 h-6 mr-2 text-blue-600" /> Inventario en almacén
+      </h2>
+      <p class="text-gray-500 text-sm mb-6">
+        Productos disponibles en este centro
+      </p>
+      <div id="inventario-container" class="mt-4">
+        <div class="flex justify-center items-center h-16">
+          <div class="animate-pulse flex items-center space-x-2">
+            <div class="h-3 w-3 bg-blue-400 rounded-full animate-bounce"></div>
+            <div
+              class="h-3 w-3 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"
+            >
+            </div>
+            <div
+              class="h-3 w-3 bg-blue-600 rounded-full animate-bounce [animation-delay:0.4s]"
+            >
+            </div>
+            <span class="text-blue-600 font-medium ml-2"
+              >Cargando inventario...</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen popup form with enhanced UI -->
+  <div
+    id="enviar-popup"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center hidden z-50 transition-opacity duration-300 backdrop-blur-sm"
+  >
+    <div
+      class="bg-white rounded-2xl p-0 max-w-lg w-full shadow-2xl transform transition-all duration-300 scale-100 overflow-hidden"
+    >
+      <!-- Header with gradient background -->
+      <div
+        class="bg-gradient-to-r from-blue-600 to-indigo-700 p-7 text-white relative popup-header"
+      >
+        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <pattern
+              id="pattern-circles"
+              x="0"
+              y="0"
+              width="50"
+              height="50"
+              patternUnits="userSpaceOnUse"
+              patternContentUnits="userSpaceOnUse"
+            >
+              <circle
+                id="pattern-circle"
+                cx="10"
+                cy="10"
+                r="1.6257413380501518"
+                fill="#fff"></circle>
+            </pattern>
+            <rect
+              id="rect"
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="url(#pattern-circles)"></rect>
+          </svg>
+        </div>
+
+        <div class="flex justify-between items-center relative z-10">
+          <h2 class="text-2xl font-bold flex items-center">
+            <div class="bg-white/20 p-3 rounded-xl mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                ></path>
+              </svg>
+            </div>
+            <span>Enviar Nuevo Paquete</span>
+          </h2>
+          <button
+            id="close-popup"
+            class="text-white hover:text-gray-200 transition-colors rounded-full bg-white/20 p-2 hover:bg-white/30"
+          >
+            <X />
+          </button>
+        </div>
+        <p class="mt-4 text-blue-100 pl-[60px]">
+          Complete el formulario para enviar un producto a un almacén
+        </p>
+      </div>
+
+      <!-- Main form content -->
+      <div class="p-8">
+        <form
+          id="enviar-form"
+          action="http://localhost:3000/api/enviar"
+          method="POST"
+          class="space-y-7"
+        >
+          <!-- Warehouse selection with icon -->
+          <div class="space-y-3">
+            <label
+              for="almacen"
+              class="block text-sm font-semibold text-gray-700 flex items-center"
+            >
+              <div class="bg-blue-50 p-2 rounded-lg mr-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  ></path>
+                </svg>
+              </div>
+              Almacén de Destino
+            </label>
+            <div class="relative">
+              <select
+                id="almacen"
+                name="almacen"
+                required
+                class="w-full p-4 pl-5 pr-10 border border-gray-300 rounded-xl bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 appearance-none transition-all"
+              >
+                <option value="" disabled selected>Seleccione un almacén</option
+                >
+                <option value="Vera">Campus de Vera</option>
+                <option value="Alcoi">Campus d'Alcoi</option>
+                <option value="Gandia">Campus de Gandia</option>
+              </select>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product selection with icon -->
+          <div class="space-y-3">
+            <label
+              for="lectura"
+              class="block text-sm font-semibold text-gray-700 flex items-center"
+            >
+              <div class="bg-blue-50 p-2 rounded-lg mr-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"
+                  ></path>
+                </svg>
+              </div>
+              Producto a Enviar
+            </label>
+            <div class="relative">
+              <select
+                id="lectura"
+                name="lectura"
+                required
+                class="w-full p-4 pl-5 pr-10 border border-gray-300 rounded-xl bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 appearance-none transition-all"
+              >
+                <option value="" disabled selected
+                  >Seleccione un producto</option
+                >
+                <!-- Options will be populated dynamically -->
+              </select>
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cantidad a enviar -->
+          <div class="space-y-3">
+            <label
+              for="cantidad"
+              class="block text-sm font-semibold text-gray-700 flex items-center"
+            >
+              <div class="bg-blue-50 p-2 rounded-lg mr-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+              </div>
+              Cantidad a Enviar
+            </label>
+            <input
+              type="number"
+              id="cantidad"
+              name="cantidad"
+              min="1"
+              required
+              placeholder="ej. 10"
+              class="w-full p-4 border border-gray-300 rounded-xl bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            />
+          </div>
+
+          <input type="hidden" name="password" value="" id="admin-password" />
+
+          <div
+            id="product-details"
+            class="mt-6 p-5 bg-blue-50 rounded-xl border border-blue-100 hidden"
+          >
+            <div class="flex items-start">
+              <div
+                id="product-icon"
+                class="flex-shrink-0 h-16 w-16 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white font-bold text-xl mr-4 shadow-lg"
+              >
+                XX
+              </div>
+              <div class="flex-1">
+                <h3 id="product-name-envio" class="text-lg font-bold text-gray-900">
+                  Nombre del Producto
+                </h3>
+                <p id="product-id-envio" class="text-sm text-gray-500 mt-1">
+                  ID: ---
+                </p>
+                <div class="mt-3 flex items-center">
+                  <span
+                    class="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-100 text-green-800 flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3.5 w-3.5 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span id="product-shelf-life">30 días de vida útil</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit button with animation -->
+          <div class="pt-4">
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 transform hover:translate-y-[-2px] shadow-lg hover:shadow-xl flex items-center justify-center text-lg font-semibold"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+              </svg>
+              Enviar Paquete
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer with tips -->
+      <div class="px-8 py-5 bg-gray-50 rounded-b-2xl border-t border-gray-200">
+        <div class="flex items-start text-sm text-gray-600">
+          <div
+            class="bg-blue-100 p-2 rounded-lg text-blue-600 mr-3 flex-shrink-0 mt-0.5"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+          </div>
+          <p>
+            Los envíos suelen tardar entre 1-3 días en llegar al almacén
+            seleccionado. El estado del envío puede consultarse en la sección
+            "Envíos en ruta".
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Destination selection popup with enhanced design -->
+  <div
+    id="salida-popup"
+    class="fixed inset-0 bg-black/75 flex items-center justify-center hidden z-50 backdrop-blur-sm transition-opacity duration-300"
+  >
+    <div
+      class="bg-white rounded-2xl p-0 overflow-hidden w-full max-w-lg shadow-2xl transform transition-all duration-300 scale-100"
+    >
+      <!-- Header with gradient background -->
+      <div
+        class="bg-gradient-to-r from-red-600 to-pink-700 p-7 text-white relative"
+      >
+        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <pattern
+              id="pattern-circles-2"
+              x="0"
+              y="0"
+              width="50"
+              height="50"
+              patternUnits="userSpaceOnUse"
+              patternContentUnits="userSpaceOnUse"
+            >
+              <circle
+                id="pattern-circle-2"
+                cx="10"
+                cy="10"
+                r="1.6257413380501518"
+                fill="#fff"></circle>
+            </pattern>
+            <rect
+              id="rect-2"
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="url(#pattern-circles-2)"></rect>
+          </svg>
+        </div>
+
+        <div class="flex justify-between items-center relative z-10">
+          <h2 class="text-2xl font-bold flex items-center">
+            <div class="bg-white/20 p-3 rounded-xl mr-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                ></path>
+              </svg>
+            </div>
+            <span>Registrar Salida</span>
+          </h2>
+          <button
+            id="close-salida-popup"
+            class="text-white hover:text-gray-200 transition-colors rounded-full bg-white/20 p-2 hover:bg-white/30"
+          >
+            <X />
+          </button>
+        </div>
+
+        <p class="mt-4 text-red-100 pl-[60px]">
+          Seleccione el destino para <span
+            id="salida-product-name"
+            class="font-semibold"></span>
+        </p>
+      </div>
+
+      <div class="p-8">
+        <input type="hidden" id="salida-product-id" value="" />
+
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <button
+            onclick="procesarSalida('particulares')"
+            class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl hover:border-red-400 hover:bg-red-50 transition duration-200 group"
+          >
+            <div
+              class="bg-gradient-to-br from-red-500 to-pink-600 text-white p-4 rounded-xl shadow-lg mb-4 group-hover:scale-110 transition duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+            </div>
+            <span class="text-lg font-bold text-gray-800">A particulares</span>
+            <span class="text-sm text-gray-500 mt-1 text-center"
+              >Envío al cliente final o consumidor</span
+            >
+          </button>
+
+          <button
+            onclick="procesarSalida('centro')"
+            class="flex flex-col items-center p-6 border-2 border-gray-200 rounded-xl hover:border-red-400 hover:bg-red-50 transition duration-200 group"
+          >
+            <div
+              class="bg-gradient-to-br from-red-500 to-pink-600 text-white p-4 rounded-xl shadow-lg mb-4 group-hover:scale-110 transition duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                ></path>
+              </svg>
+            </div>
+            <span class="text-lg font-bold text-gray-800">A otro centro</span>
+            <span class="text-sm text-gray-500 mt-1 text-center"
+              >Transferencia a otro almacén</span
+            >
+          </button>
+        </div>
+
+        <div class="mt-8 border-t pt-6 flex justify-end">
+          <button
+            id="cancel-salida"
+            class="px-5 py-3 bg-gray-200 text-gray-800 rounded-xl font-medium hover:bg-gray-300 transition duration-200 flex items-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Cancelar operación
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>>
+
+<style>
+  /* Custom scrollbar for the products list */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+  }
+
+  /* Add these styles to your existing <style> section */
+  .popup-content {
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .popup-header {
+    flex-shrink: 0;
+  }
+
+  .popup-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Ensure the scrollbar looks nice */
+  .popup-body::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .popup-body::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .popup-body::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 10px;
+  }
+
+  .popup-body::-webkit-scrollbar-thumb:hover {
+    background-color: #9ca3af;
+  }
+
+  /* Make sure dropdown options are visible on small screens */
+  select option {
+    padding: 8px;
+  }
+</style>
+
+<script is:inline>
+  let productos = [];
+  let repartos = [];
+  const adminPassword = "amogus-sus"; // In a real app, handle this securely
+  let productosMap = {};
+  let selectedCenter = localStorage.getItem("selectedCenter") || "Vera";
+
+  // Update last updated time
+  function updateLastUpdated() {
+    const now = new Date();
+    const formatted = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    document.getElementById("last-updated").textContent = formatted;
+  }
+
+  // Load center from localStorage and update dropdown
+  document.addEventListener("DOMContentLoaded", () => {
+    // Set last updated time
+    updateLastUpdated();
+
+    // First fetch productos to have them available for lookup
+    fetchProductos().then(() => {
+      fetchAndDisplayRepartos();
+      fetchAndDisplayInventario();
+    });
+
+    const centerSelect = document.getElementById("center-select");
+    if (centerSelect) {
+      centerSelect.value = selectedCenter;
+
+      // Save center selection to localStorage when changed
+      centerSelect.addEventListener("change", () => {
+        selectedCenter = centerSelect.value;
+        localStorage.setItem("selectedCenter", selectedCenter);
+        fetchAndDisplayRepartos();
+        fetchAndDisplayInventario();
+        updateLastUpdated();
+      });
+    }
+
+    // Setup popup animations
+    setupPopupAnimations();
+
+    // Add event listener for product selection
+    setupProductSelection();
+  });
+
+  // Enhanced popup animations
+  function setupPopupAnimations() {
+    const enviarBtn = document.getElementById("enviar-btn");
+    const closeBtn = document.getElementById("close-popup");
+    const popup = document.getElementById("enviar-popup");
+    const passwordField = document.getElementById("admin-password");
+    const popupContent = popup?.querySelector("div");
+
+    if (enviarBtn && closeBtn && popup && passwordField && popupContent) {
+      enviarBtn.addEventListener("click", () => {
+        popup.classList.remove("hidden");
+        popup.style.opacity = "0";
+        popupContent.style.transform = "scale(0.9)";
+
+        setTimeout(() => {
+          popup.style.opacity = "1";
+          popupContent.style.transform = "scale(1)";
+        }, 10);
+
+        passwordField.value = adminPassword;
+      });
+
+      closeBtn.addEventListener("click", () => {
+        popup.style.opacity = "0";
+        popupContent.style.transform = "scale(0.95)";
+
+        setTimeout(() => {
+          popup.classList.add("hidden");
+        }, 300);
+      });
+    }
+
+    const closeSalidaBtn = document.getElementById("close-salida-popup");
+    const cancelSalidaBtn = document.getElementById("cancel-salida");
+    const salidaPopup = document.getElementById("salida-popup");
+    const salidaContent = salidaPopup?.querySelector("div");
+
+    if (closeSalidaBtn && salidaPopup && salidaContent) {
+      closeSalidaBtn.addEventListener("click", () => {
+        salidaPopup.style.opacity = "0";
+        salidaContent.style.transform = "scale(0.95)";
+
+        setTimeout(() => {
+          salidaPopup.classList.add("hidden");
+        }, 300);
+      });
+    }
+
+    if (cancelSalidaBtn && salidaPopup) {
+      cancelSalidaBtn.addEventListener("click", () => {
+        salidaPopup.style.opacity = "0";
+        salidaContent.style.transform = "scale(0.95)";
+
+        setTimeout(() => {
+          salidaPopup.classList.add("hidden");
+        }, 300);
+      });
+    }
+  }
+
+  // Product selection event handler
+  function setupProductSelection() {
+    const productSelect = document.getElementById("lectura");
+    if (productSelect) {
+      productSelect.addEventListener("change", () => {
+        const selectedProductId = productSelect.value;
+        const selectedProduct = productos.find(
+          (p) => p.id === selectedProductId
+        );
+
+        if (selectedProduct) {
+          const detailsSection = document.getElementById("product-details");
+          const productIcon = document.getElementById("product-icon");
+          const productName = document.getElementById("product-name-envio");
+          const productId = document.getElementById("product-id-envio");
+          const productShelfLife =
+            document.getElementById("product-shelf-life");
+
+          if (
+            detailsSection &&
+            productIcon &&
+            productName &&
+            productId &&
+            productShelfLife
+          ) {
+            productIcon.textContent = selectedProduct.producto
+              .substring(0, 2)
+              .toUpperCase();
+            productName.textContent = selectedProduct.producto;
+            productId.textContent = `ID: ${selectedProduct.id}`;
+            productShelfLife.textContent = `${selectedProduct.shelf_life || 30} días de vida útil`;
+
+            detailsSection.classList.remove("hidden");
+            detailsSection.classList.add("animate-fadeIn");
+          }
+        }
+      });
+    }
+  }
+
+  // Fetch products
+  function fetchProductos() {
+    return fetch("http://localhost:3000/api/productos")
+      .then((response) => response.json())
+      .then((data) => {
+        productos = data;
+
+        productosMap = {};
+        productos.forEach((producto) => {
+          productosMap[producto.id] = producto.producto;
+        });
+
+        const productSelect = document.getElementById("lectura");
+        if (productSelect) {
+          // Clear existing options first
+          while (productSelect.options.length > 1) {
+            productSelect.remove(1);
+          }
+
+          productos.forEach((producto) => {
+            const option = document.createElement("option");
+            option.value = producto.id;
+            option.textContent = `${producto.producto} (${producto.id})`;
+            productSelect.appendChild(option);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        showToast("Error al cargar productos. Intente nuevamente.", "error");
+      });
+  }
+
+  // Simulate reception of a shipment
+  async function simularRecepcion(id, almacen) {
+    try {
+      const params = new URLSearchParams();
+      params.append("id", id);
+      params.append("almacen", almacen);
+      params.append("password", adminPassword);
+
+      const response = await fetch("http://localhost:3000/api/qr-entrada", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      fetchAndDisplayRepartos();
+      fetchAndDisplayInventario();
+      updateLastUpdated();
+
+      showToast("Producto recibido correctamente", "success");
+    } catch (error) {
+      console.error("Error simulando recepción:", error);
+      showToast(`Error: ${error.message}`, "error");
+    }
+  }
+
+  // Show salida popup
+  async function simularSalida(id, productoNombre) {
+    const popup = document.getElementById("salida-popup");
+    const productNameElement = document.getElementById("salida-product-name");
+    const idElement = document.getElementById("salida-product-id");
+    const popupContent = popup?.querySelector("div");
+
+    if (popup && productNameElement && idElement && popupContent) {
+      productNameElement.textContent = productoNombre || "Producto";
+      idElement.value = id;
+
+      popup.classList.remove("hidden");
+      popup.style.opacity = "0";
+      popupContent.style.transform = "scale(0.9)";
+
+      setTimeout(() => {
+        popup.style.opacity = "1";
+        popupContent.style.transform = "scale(1)";
+      }, 10);
+    }
+  }
+
+  // Process the product removal
+  async function procesarSalida(tipoDestino) {
+    const id = document.getElementById("salida-product-id").value;
+
+    try {
+      const params = new URLSearchParams();
+      params.append("id", id);
+      params.append("password", adminPassword);
+
+      let response;
+
+      switch (tipoDestino) {
+        case "particulares":
+          response = await fetch(
+            "http://localhost:3000/api/salida-particulares",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: params,
+            }
+          );
+          break;
+        case "centro":
+          response = await fetch("http://localhost:3000/api/salida-centro", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: params,
+          });
+          break;
+        default:
+          throw new Error("Tipo de destino no válido");
+      }
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error! status: ${response.status}, message: ${responseText}`
+        );
+      }
+
+      // Close the popup with animation
+      const popup = document.getElementById("salida-popup");
+      const popupContent = popup?.querySelector("div");
+
+      if (popup && popupContent) {
+        popup.style.opacity = "0";
+        popupContent.style.transform = "scale(0.95)";
+
+        setTimeout(() => {
+          popup.classList.add("hidden");
+        }, 300);
+      }
+
+      fetchAndDisplayRepartos();
+      fetchAndDisplayInventario();
+      updateLastUpdated();
+
+      const destText =
+        tipoDestino === "particulares" ? "cliente final" : "otro centro";
+      showToast(`Producto enviado correctamente a ${destText}`, "success");
+    } catch (error) {
+      console.error("Error procesando salida:", error);
+      showToast(`Error: ${error.message}`, "error");
+    }
+  }
+
+  // Stylish toast notifications
+  function showToast(message, type = "info") {
+    // Remove any existing toasts
+    const existingToasts = document.querySelectorAll(".toast-notification");
+    existingToasts.forEach((toast) => toast.remove());
+
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById("toast-container");
+    if (!toastContainer) {
+      toastContainer = document.createElement("div");
+      toastContainer.id = "toast-container";
+      toastContainer.className =
+        "fixed bottom-4 right-4 z-50 flex flex-col gap-2";
+      document.body.appendChild(toastContainer);
+    }
+
+    // Create the toast
+    const toast = document.createElement("div");
+    toast.className =
+      "toast-notification flex items-center p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-y-20 opacity-0";
+
+    // Set style based on type
+    let icon, bgClass;
+    switch (type) {
+      case "success":
+        bgClass = "bg-green-600 text-white";
+        icon =
+          '<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        break;
+      case "error":
+        bgClass = "bg-red-600 text-white";
+        icon =
+          '<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        break;
+      default:
+        bgClass = "bg-blue-600 text-white";
+        icon =
+          '<svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    }
+
+    toast.className += ` ${bgClass}`;
+    toast.innerHTML = `
+      ${icon}
+      <span class="font-medium">${message}</span>
+    `;
+
+    // Add to container
+    toastContainer.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => {
+      toast.classList.remove("translate-y-20", "opacity-0");
+    }, 10);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      toast.classList.add("translate-y-20", "opacity-0");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Enhanced table rendering for shipments in transit
+  function fetchAndDisplayRepartos() {
+    fetch("http://localhost:3000/api/repartos")
+      .then((response) => response.json())
+      .then((data) => {
+        repartos = data;
+        const enRuta = repartos.filter(
+          (reparto) =>
+            !reparto.timestamp_recepcion && reparto.almacen === selectedCenter
+        );
+
+        const container = document.getElementById("repartos-container");
+        if (container) {
+          if (enRuta.length > 0) {
+            container.innerHTML = `
+              <div class="overflow-hidden rounded-xl border border-gray-200 shadow-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Producto</th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Destino</th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
+                      <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white">
+                    ${enRuta
+                      .map((reparto, index) => {
+                        const producto = productos.find(
+                          (p) => p.id === reparto.lectura
+                        );
+                        const productoNombre = producto
+                          ? producto.producto
+                          : "Desconocido";
+                        const sendDate = new Date(reparto.timestamp);
+                        const today = new Date();
+                        const daysInTransit = Math.ceil(
+                          (today - sendDate) / (1000 * 60 * 60 * 24)
+                        );
+
+                        let statusColor, statusBg, statusText, statusIcon;
+
+                        if (daysInTransit > 7) {
+                          statusColor = "text-red-700";
+                          statusBg = "bg-red-100";
+                          statusText = "Retrasado";
+                          statusIcon =
+                            '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                        } else if (daysInTransit > 3) {
+                          statusColor = "text-orange-700";
+                          statusBg = "bg-orange-100";
+                          statusText = "En tránsito";
+                          statusIcon =
+                            '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>';
+                        } else if (daysInTransit > 1) {
+                          statusColor = "text-yellow-700";
+                          statusBg = "bg-yellow-100";
+                          statusText = "En ruta";
+                          statusIcon =
+                            '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                        } else {
+                          statusColor = "text-blue-700";
+                          statusBg = "bg-blue-100";
+                          statusText = "En camino";
+                          statusIcon =
+                            '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>';
+                        }
+
+                        const rowBg = index % 2 === 0 ? "" : "bg-gray-50";
+
+                        return `
+                        <tr class="${rowBg} hover:bg-blue-50 transition-colors">
+                          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <span class="bg-blue-50 px-2 py-1 rounded-md font-medium">#${reparto.id}</span>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                              <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white font-bold shadow-md">
+                                ${productoNombre.substring(0, 2).toUpperCase()}
+                              </div>
+                              <div class="ml-4">
+                                <div class="text-sm font-semibold text-gray-900">
+                                  ${productoNombre}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                  ID: ${reparto.lectura}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                              <div class="h-9 w-9 flex-shrink-0 mr-2 bg-gray-100 rounded-lg p-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                              </div>
+                              <span class="text-sm font-semibold text-gray-900">
+                                ${reparto.almacen}
+                              </span>
+                            </div>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-gray-900">
+                              <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                ${new Date(reparto.timestamp).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">
+                              <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                ${new Date(reparto.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </div>
+                            </div>
+                            <div class="text-xs font-medium text-indigo-600 mt-1.5">
+                              ${daysInTransit} día(s) en tránsito
+                            </div>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                              <span class="px-3 py-1.5 rounded-full ${statusBg} ${statusColor} text-xs font-medium flex items-center">
+                                ${statusIcon}
+                                ${statusText}
+                              </span>
+                            </div>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap">
+                            <button 
+                              class="inline-flex items-center px-3.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-white bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-150 shadow-md"
+                              onclick="simularRecepcion('${reparto.id}', '${reparto.almacen}')"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                              </svg>
+                              Recibir
+                            </button>
+                          </td>
+                        </tr>
+                      `;
+                      })
+                      .join("")}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          } else {
+            container.innerHTML = `
+              <div class="bg-white p-10 rounded-xl shadow-md text-center border border-gray-100">
+                <div class="bg-blue-50 inline-flex p-4 rounded-full mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m-8 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">No hay envíos en ruta</h3>
+                <p class="text-gray-600 max-w-md mx-auto">No hay productos en camino hacia ${selectedCenter} en este momento. Utilice el botón "Enviar" para crear un nuevo envío.</p>
+                <button
+                  onclick="document.getElementById('enviar-btn').click()"
+                  class="mt-6 px-5 py-2.5 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors inline-flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Crear Envío
+                </button>
+              </div>
+            `;
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching repartos:", error);
+        const container = document.getElementById("repartos-container");
+        if (container) {
+          container.innerHTML = `
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-red-700">
+                    Error al cargar los envíos: ${error.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      });
+  }
+
+  // Enhanced table rendering for inventory
+  function fetchAndDisplayInventario() {
+    fetch("http://localhost:3000/api/repartos")
+      .then((response) => response.json())
+      .then((data) => {
+        repartos = data;
+
+        const enAlmacen = repartos.filter(
+          (reparto) =>
+            reparto.timestamp_recepcion && reparto.almacen === selectedCenter
+        );
+
+        const container = document.getElementById("inventario-container");
+        if (container) {
+          if (enAlmacen.length > 0) {
+            container.innerHTML = `
+            <div class="overflow-hidden rounded-xl border border-gray-200 shadow-lg">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Producto</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Ubicación</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Caducidad</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Acción</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                  ${enAlmacen
+                    .map((reparto, index) => {
+                      const producto = productos.find(
+                        (p) => p.id === reparto.lectura
+                      );
+                      const productoNombre = producto
+                        ? producto.producto
+                        : "Desconocido";
+
+                      const shelfLife = producto ? producto.shelf_life : 30;
+                      const sendDate = new Date(reparto.timestamp);
+                      const expiryDate = new Date(sendDate);
+                      expiryDate.setDate(expiryDate.getDate() + shelfLife);
+
+                      const today = new Date();
+                      const daysRemaining = Math.ceil(
+                        (expiryDate - today) / (1000 * 60 * 60 * 24)
+                      );
+
+                      // Calculate percentage for visual indicator
+                      const percentRemaining = Math.max(
+                        0,
+                        Math.min(100, (daysRemaining / shelfLife) * 100)
+                      );
+
+                      let statusBg,
+                        statusColor,
+                        progressColor,
+                        statusText,
+                        statusIcon;
+
+                      if (daysRemaining < 0) {
+                        statusBg = "bg-red-100";
+                        statusColor = "text-red-700";
+                        progressColor = "bg-red-600";
+                        statusText = "Caducado";
+                        statusIcon =
+                          '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                      } else if (daysRemaining < 5) {
+                        statusBg = "bg-orange-100";
+                        statusColor = "text-orange-700";
+                        progressColor = "bg-orange-600";
+                        statusText = "Crítico";
+                        statusIcon =
+                          '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+                      } else if (daysRemaining < 10) {
+                        statusBg = "bg-yellow-100";
+                        statusColor = "text-yellow-700";
+                        progressColor = "bg-yellow-500";
+                        statusText = "Atención";
+                        statusIcon =
+                          '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                      } else {
+                        statusBg = "bg-green-100";
+                        statusColor = "text-green-700";
+                        progressColor = "bg-green-600";
+                        statusText = "Óptimo";
+                        statusIcon =
+                          '<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                      }
+
+                      const rowBg = index % 2 === 0 ? "" : "bg-gray-50";
+
+                      return `
+                      <tr class="${rowBg} hover:bg-blue-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <span class="bg-blue-50 px-2 py-1 rounded-md font-medium">#${reparto.id}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white font-bold shadow-md">
+                              ${productoNombre.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div class="ml-4">
+                              <div class="text-sm font-semibold text-gray-900">
+                                ${productoNombre}
+                              </div>
+                              <div class="text-xs text-gray-500">
+                                ID: ${reparto.lectura}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="flex justify-start">
+                            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 font-bold text-lg shadow-sm border border-gray-300">
+                              ${reparto.location || "?"}
+                            </span>
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="text-sm font-semibold text-gray-900">
+                            <div class="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              Recibido: ${new Date(reparto.timestamp_recepcion).toLocaleDateString()}
+							  	</div>
+							<div class="text-xs text-gray-500 mt-1">
+														<div class="flex items-center">
+														  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+														  </svg>
+														  Recibido: ${new Date(reparto.timestamp_recepcion).toLocaleDateString()}
+														</div>
+														<div class="text-xs text-gray-500 mt-1">
+														  <div class="flex items-center">
+															<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+															  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+															</svg>
+															${new Date(reparto.timestamp_recepcion).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+														  </div>
+														</div>
+													  </div>
+													</td>
+													<td class="px-6 py-4 whitespace-nowrap">
+													  <div class="mb-1 flex items-center">
+														<span class="px-3 py-1.5 rounded-full ${statusBg} ${statusColor} text-xs font-medium flex items-center">
+														  ${statusIcon}
+														  ${statusText}
+														</span>
+													  </div>
+													  
+													  <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700 mb-1.5">
+														<div class="${progressColor} h-2 rounded-full" style="width: ${percentRemaining}%"></div>
+													  </div>
+													  
+													  <div class="flex justify-between text-xs mt-1">
+														<span class="font-medium">${daysRemaining} días</span>
+														<span class="text-gray-500">${expiryDate.toLocaleDateString()}</span>
+													  </div>
+													</td>
+													<td class="px-6 py-4 whitespace-nowrap">
+													  <button 
+														class="inline-flex items-center px-3.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-white bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-150 shadow-md"
+														onclick="simularSalida('${reparto.id}', '${productoNombre}')"
+													  >
+														<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+														  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+														</svg>
+														Salida
+													  </button>
+													</td>
+												  </tr>
+												`;
+                    })
+                    .join("")}
+											</tbody>
+										  </table>
+										</div>
+									  `;
+          } else {
+            container.innerHTML = `
+										  <div class="bg-white p-10 rounded-xl shadow-md text-center border border-gray-100">
+											<div class="bg-green-50 inline-flex p-4 rounded-full mb-4">
+											  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
+											  </svg>
+											</div>
+											<h3 class="text-xl font-bold text-gray-800 mb-2">Inventario vacío</h3>
+											<p class="text-gray-600 max-w-md mx-auto">No hay productos almacenados en ${selectedCenter} en este momento. Los productos en ruta aparecerán aquí una vez recibidos.</p>
+											<button
+											  onclick="document.getElementById('enviar-btn').click()"
+											  class="mt-6 px-5 py-2.5 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors inline-flex items-center"
+											>
+											  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+											  </svg>
+											  Enviar Producto
+											</button>
+										  </div>
+										`;
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching inventory:", error);
+        const container = document.getElementById("inventario-container");
+        if (container) {
+          container.innerHTML = `
+										<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+										  <div class="flex">
+											<div class="flex-shrink-0">
+											  <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293-1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+											  </svg>
+											</div>
+											<div class="ml-3">
+											  <p class="text-sm text-red-700">
+												Error al cargar el inventario: ${error.message}
+											  </p>
+											  <p class="text-xs text-red-600 mt-1">
+												Intente refrescar la página o contacte al administrador del sistema.
+											  </p>
+											</div>
+										  </div>
+										</div>
+									  `;
+        }
+      });
+  }
+
+  // Setup popup animations for all modals
+  document.addEventListener("DOMContentLoaded", () => {
+    // Existing code...
+
+    // Center Management Popup
+    setupModalAnimation(
+      "manage-centers-btn",
+      "close-centers-popup",
+      "centers-popup"
+    );
+
+    // Product Management Popup
+    setupModalAnimation(
+      "manage-products-btn",
+      "close-products-popup",
+      "products-popup"
+    );
+
+    // Load centers and products data
+    loadCentersData();
+    loadProductsData();
+
+    // Add event listeners for forms
+    document
+      .getElementById("center-form")
+      ?.addEventListener("submit", handleAddCenter);
+    document
+      .getElementById("product-form")
+      ?.addEventListener("submit", handleAddProduct);
+
+    // Add search functionality for products
+    document
+      .getElementById("product-search")
+      ?.addEventListener("input", filterProducts);
+  });
+
+  // Generic modal animation setup
+  function setupModalAnimation(openBtnId, closeBtnId, modalId) {
+    const openBtn = document.getElementById(openBtnId);
+    const closeBtn = document.getElementById(closeBtnId);
+    const modal = document.getElementById(modalId);
+    const modalContent = modal?.querySelector("div");
+
+    if (openBtn && closeBtn && modal && modalContent) {
+      openBtn.addEventListener("click", () => {
+        modal.classList.remove("hidden");
+        modal.style.opacity = "0";
+        modalContent.style.transform = "scale(0.9)";
+
+        setTimeout(() => {
+          modal.style.opacity = "1";
+          modalContent.style.transform = "scale(1)";
+        }, 10);
+      });
+
+      closeBtn.addEventListener("click", () => {
+        modal.style.opacity = "0";
+        modalContent.style.transform = "scale(0.95)";
+
+        setTimeout(() => {
+          modal.classList.add("hidden");
+        }, 300);
+      });
+    }
+  }
+
+  // Load Centers Data from localStorage
+  function loadCentersData() {
+    const centersList = document.getElementById("centers-list");
+    if (!centersList) return;
+
+    // Get centers from localStorage or use defaults
+    let centers = JSON.parse(localStorage.getItem("centers") || "[]");
+
+    // If no centers in localStorage, initialize with default centers
+    if (centers.length === 0) {
+      const select = document.getElementById("center-select");
+      if (select) {
+        centers = Array.from(select.options)
+          .filter((option) => option.value)
+          .map((option) => ({
+            id: option.value,
+            name: option.textContent,
+          }));
+
+        // Save initial centers
+        localStorage.setItem("centers", JSON.stringify(centers));
+      }
+    }
+
+    renderCentersList(centers);
+  }
+
+  // Render Centers List
+  function renderCentersList(centers) {
+    const centersList = document.getElementById("centers-list");
+    if (!centersList) return;
+
+    if (centers.length === 0) {
+      centersList.innerHTML = `
+        <div class="text-center p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <p class="text-gray-500">No hay centros disponibles</p>
+        </div>
+      `;
+      return;
+    }
+
+    centersList.innerHTML = centers
+      .map(
+        (center) => `
+      <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold shadow-md">
+            ${center.id.substring(0, 2).toUpperCase()}
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-semibold text-gray-900">${center.name}</div>
+            <div class="text-xs text-gray-500">ID: ${center.id}</div>
+          </div>
+        </div>
+        <button class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors" onclick="removeCenter('${center.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  // Add Center with localStorage support
+  function handleAddCenter(e) {
+    e.preventDefault();
+    const centerId = document.getElementById("center-id").value;
+    const centerName = document.getElementById("center-name").value;
+
+    if (!centerId || !centerName) {
+      showToast("Por favor complete todos los campos", "error");
+      return;
+    }
+
+    // Get current centers
+    const centers = JSON.parse(localStorage.getItem("centers") || "[]");
+
+    // Check for duplicate IDs
+    if (centers.some((center) => center.id === centerId)) {
+      showToast(`El centro con ID "${centerId}" ya existe`, "error");
+      return;
+    }
+
+    // Add new center
+    centers.push({ id: centerId, name: centerName });
+
+    // Save to localStorage
+    localStorage.setItem("centers", JSON.stringify(centers));
+
+    // Update center dropdown
+    updateCenterDropdown(centers);
+
+    // Update centers list
+    renderCentersList(centers);
+
+    // Clear form
+    document.getElementById("center-id").value = "";
+    document.getElementById("center-name").value = "";
+
+    showToast("Centro añadido correctamente", "success");
+  }
+
+  // Update center dropdown with values from localStorage
+  function updateCenterDropdown(centers) {
+    const select = document.getElementById("center-select");
+    if (select) {
+      // Remove all options
+      while (select.options.length > 0) {
+        select.remove(0);
+      }
+
+      // Add new options from centers
+      centers.forEach((center) => {
+        const option = document.createElement("option");
+        option.value = center.id;
+        option.textContent = center.name;
+        option.className = "text-gray-800";
+        select.appendChild(option);
+      });
+
+      // Restore selected center if in the list, or select first option
+      const savedCenter = localStorage.getItem("selectedCenter");
+      if (savedCenter && centers.some((c) => c.id === savedCenter)) {
+        select.value = savedCenter;
+      } else if (centers.length > 0) {
+        select.value = centers[0].id;
+        localStorage.setItem("selectedCenter", centers[0].id);
+      }
+    }
+  }
+
+  // Remove Center with localStorage support
+  function removeCenter(centerId) {
+    if (!confirm(`¿Está seguro que desea eliminar el centro ${centerId}?`)) {
+      return;
+    }
+
+    // Get current centers
+    let centers = JSON.parse(localStorage.getItem("centers") || "[]");
+
+    // Filter out the center to remove
+    centers = centers.filter((center) => center.id !== centerId);
+
+    // Save to localStorage
+    localStorage.setItem("centers", JSON.stringify(centers));
+
+    // Update center dropdown
+    updateCenterDropdown(centers);
+
+    // Update centers list
+    renderCentersList(centers);
+
+    // If we're removing the currently selected center, switch to another one
+    const currentlySelected = localStorage.getItem("selectedCenter");
+    if (currentlySelected === centerId && centers.length > 0) {
+      localStorage.setItem("selectedCenter", centers[0].id);
+      fetchAndDisplayRepartos();
+      fetchAndDisplayInventario();
+    }
+
+    showToast("Centro eliminado correctamente", "success");
+  }
+
+  // Load Products Data
+  function loadProductsData() {
+    const productsList = document.getElementById("products-list");
+    if (!productsList) return;
+
+    // In a real app, you'd fetch from API
+    if (productos && productos.length > 0) {
+      renderProductsList(productos);
+    } else {
+      // Load from the server if not already loaded
+      fetch("http://localhost:3000/api/productos")
+        .then((response) => response.json())
+        .then((data) => {
+          productos = data;
+          renderProductsList(productos);
+        })
+        .catch((error) => {
+          console.error("Error fetching products:", error);
+          productsList.innerHTML = `
+            <div class="text-center p-4 border border-gray-200 rounded-lg bg-red-50">
+              <p class="text-red-500">Error al cargar productos: ${error.message}</p>
+            </div>
+          `;
+        });
+    }
+  }
+
+  // Render Products List
+  function renderProductsList(products) {
+    const productsList = document.getElementById("products-list");
+    if (!productsList) return;
+
+    if (products.length === 0) {
+      productsList.innerHTML = `
+        <div class="text-center p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <p class="text-gray-500">No hay productos disponibles</p>
+        </div>
+      `;
+      return;
+    }
+
+    productsList.innerHTML = products
+      .map(
+        (product) => `
+      <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-bold shadow-md">
+            ${product.producto.substring(0, 2).toUpperCase()}
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-semibold text-gray-900">${product.producto}</div>
+            <div class="flex items-center mt-1">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                ${product.shelf_life || 30} días
+              </span>
+              <span class="text-xs text-gray-500 ml-2">ID: ${product.id}</span>
+            </div>
+          </div>
+        </div>
+        <button class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors" onclick="removeProduct('${product.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  // Filter Products
+  function filterProducts() {
+    const searchTerm = document
+      .getElementById("product-search")
+      .value.toLowerCase();
+    const filteredProducts = productos.filter(
+      (product) =>
+        product.producto.toLowerCase().includes(searchTerm) ||
+        product.id.toLowerCase().includes(searchTerm)
+    );
+    renderProductsList(filteredProducts);
+  }
+
+  // Handle Add Product - Using API
+  async function handleAddProduct(e) {
+    e.preventDefault();
+    const productId = document.getElementById("product-id").value;
+    const productName = document.getElementById("product-name").value;
+    const shelfLife = document.getElementById("shelf-life").value;
+
+    if (!productId || !productName || !shelfLife) {
+      showToast("Por favor complete todos los campos", "error");
+      return;
+    }
+
+    const newProduct = {
+      id: productId,
+      producto: productName,
+      shelf_life: parseInt(shelfLife),
+    };
+
+    try {
+      // Call API to add product
+      const response = await fetch("http://localhost:3000/api/productos/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminPassword}`, // Add auth if your API requires it
+        },
+        body: JSON.stringify(newProduct),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error: ${response.status} - ${errorText}`);
+      }
+
+      // Refresh products list
+      await fetchProductos();
+      loadProductsData();
+
+      // Clear form
+      document.getElementById("product-id").value = "";
+      document.getElementById("product-name").value = "";
+      document.getElementById("shelf-life").value = "";
+
+      showToast("Producto añadido correctamente", "success");
+    } catch (error) {
+      console.error("Error adding product:", error);
+      showToast(`Error al añadir producto: ${error.message}`, "error");
+
+      // Fallback for demo/testing purposes if API isn't available
+      console.log("Using fallback mode for demo");
+      productos.push(newProduct);
+      renderProductsList(productos);
+
+      // Update product dropdown
+      const productSelect = document.getElementById("lectura");
+      if (productSelect) {
+        const option = document.createElement("option");
+        option.value = productId;
+        option.textContent = `${productName} (${productId})`;
+        productSelect.appendChild(option);
+      }
+    }
+  }
+
+  // Remove Product - Using API
+  async function removeProduct(productId) {
+    if (!confirm(`¿Está seguro que desea eliminar el producto ${productId}?`)) {
+      return;
+    }
+
+    try {
+      // Call API to remove product
+      const response = await fetch(
+        `http://localhost:3000/api/productos/remove/${productId}`,
+        {
+          method: "POST", // or DELETE, depends on your API
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${adminPassword}`, // Add auth if your API requires it
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error: ${response.status} - ${errorText}`);
+      }
+
+      // Refresh products list
+      await fetchProductos();
+      loadProductsData();
+
+      showToast("Producto eliminado correctamente", "success");
+    } catch (error) {
+      console.error("Error removing product:", error);
+      showToast(`Error al eliminar producto: ${error.message}`, "error");
+
+      // Fallback for demo/testing purposes if API isn't available
+      console.log("Using fallback mode for demo");
+      productos = productos.filter((p) => p.id !== productId);
+      renderProductsList(productos);
+
+      // Update product dropdown
+      const productSelect = document.getElementById("lectura");
+      if (productSelect) {
+        for (let i = 0; i < productSelect.options.length; i++) {
+          if (productSelect.options[i].value === productId) {
+            productSelect.remove(i);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Add this function to your JavaScript
+  function adjustPopupHeight() {
+    // Get all popup containers
+    const popups = document.querySelectorAll(".popup-content");
+
+    popups.forEach((popup) => {
+      const header = popup.querySelector(".popup-header");
+      const body = popup.querySelector(".popup-body");
+
+      if (header && body) {
+        // Calculate available height
+        const viewportHeight = window.innerHeight;
+        const maxHeight = viewportHeight * 0.85; // 85% of viewport height
+        const headerHeight = header.offsetHeight;
+        const bodyMaxHeight = maxHeight - headerHeight;
+
+        // Set the body max height
+        body.style.maxHeight = `${bodyMaxHeight}px`;
+      }
+    });
+  }
+
+  // Add this to your existing DOM loaded event handler
+  document.addEventListener("DOMContentLoaded", () => {
+    // ... your existing code
+
+    // Apply popup classes to enable scrolling
+    document
+      .querySelectorAll(
+        "#centers-popup > div, #products-popup > div, #enviar-popup > div, #salida-popup > div"
+      )
+      .forEach((popup) => {
+        popup.classList.add("popup-content");
+
+        // Find the header and content sections
+        const header = popup.querySelector('[class*="bg-gradient-to-r"]');
+        const body = popup.querySelector(".p-8");
+
+        if (header && body) {
+          header.classList.add("popup-header");
+          body.classList.add("popup-body");
+        }
+      });
+
+    // Adjust popup heights initially
+    adjustPopupHeight();
+
+    // Adjust when window is resized
+    window.addEventListener("resize", adjustPopupHeight);
+
+    // Also adjust when popups are opened
+    const allPopupOpenButtons = document.querySelectorAll(
+      "#enviar-btn, #manage-centers-btn, #manage-products-btn"
+    );
+
+    allPopupOpenButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // Allow time for popup to become visible
+        setTimeout(adjustPopupHeight, 50);
+      });
+    });
+  });
+
+  // Modify your setupModalAnimation function to call adjustPopupHeight
+  const originalSetupModalAnimation = setupModalAnimation;
+  window.setupModalAnimation = function (openBtnId, closeBtnId, modalId) {
+    originalSetupModalAnimation(openBtnId, closeBtnId, modalId);
+
+    const openBtn = document.getElementById(openBtnId);
+    if (openBtn) {
+      openBtn.addEventListener("click", () => {
+        setTimeout(adjustPopupHeight, 50);
+      });
+    }
+  };
+
+  // Add this to your existing script
+  let systemStatusInterval = null;
+
+  // Function to fetch system status
+  async function fetchSystemStatus() {
+    try {
+      const response = await fetch("http://localhost:3000/api/system-status");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      updateSystemStatusUI(data);
+    } catch (error) {
+      console.error("Error fetching system status:", error);
+
+      // Update UI to show connection error
+      document.getElementById("mqtt-status").textContent = "Error";
+      document.getElementById("mqtt-status").className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800";
+
+      document.getElementById("emergency-status").textContent = "Unknown";
+      document.getElementById("emergency-status").className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800";
+
+      document.getElementById("operation-status").textContent = "Unknown";
+      document.getElementById("operation-status").className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800";
+
+      document.getElementById("conveyor1-status").textContent = "Unknown";
+      document.getElementById("conveyor1-status").className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800";
+
+      document.getElementById("conveyor2-status").textContent = "Unknown";
+      document.getElementById("conveyor2-status").className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800";
+
+      document.getElementById("agv-status").textContent = "Unknown";
+      document.getElementById("agv-status").className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800";
+
+      // Disable reset button
+      const resetButton = document.getElementById("reset-emergency-button");
+      resetButton.disabled = true;
+    }
+  }
+
+  // Function to update system status UI
+  function updateSystemStatusUI(data) {
+    // Update MQTT connection status
+    const mqttStatus = document.getElementById("mqtt-status");
+    if (data.connected) {
+      mqttStatus.textContent = "Connected";
+      mqttStatus.className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800";
+    } else {
+      mqttStatus.textContent = "Disconnected";
+      mqttStatus.className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800";
+    }
+
+    // Update Emergency Stop status
+    const emergencyStatus = document.getElementById("emergency-status");
+    if (data.systemState.emergencyStop) {
+      emergencyStatus.textContent = "ACTIVATED";
+      emergencyStatus.className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800";
+    } else {
+      emergencyStatus.textContent = "Inactive";
+      emergencyStatus.className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800";
+    }
+
+    // Update Current Operation status
+    const operationStatus = document.getElementById("operation-status");
+    if (data.systemState.currentOperation) {
+      const op = data.systemState.currentOperation;
+      const opType =
+        op.type === "entrada"
+          ? "Entry"
+          : op.type === "salida_particulares"
+            ? "Output-Ind"
+            : op.type === "salida_centro"
+              ? "Output-Center"
+              : "Unknown";
+
+      operationStatus.textContent = `${opType} (${op.phase})`;
+      operationStatus.className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800";
+    } else {
+      operationStatus.textContent = "Idle";
+      operationStatus.className =
+        "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800";
+    }
+
+    // Update Conveyor 1 status
+    const conveyor1Status = document.getElementById("conveyor1-status");
+    conveyor1Status.textContent = data.systemState.conveyor1Status;
+    conveyor1Status.className =
+      data.systemState.conveyor1Status === "Parado"
+        ? "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800"
+        : "px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800";
+
+    // Update Conveyor 2 status
+    const conveyor2Status = document.getElementById("conveyor2-status");
+    conveyor2Status.textContent = data.systemState.conveyor2Status;
+    conveyor2Status.className =
+      data.systemState.conveyor2Status === "Parado"
+        ? "px-2.5 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800"
+        : "px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800";
+
+    // Update AGV status
+    const agvStatus = document.getElementById("agv-status");
+    const agvState = data.systemState.agvStatus;
+    agvStatus.textContent = `Pos ${agvState.ubicacion} / ${agvState.estado === "pick" ? "Carrying" : "Empty"}`;
+    agvStatus.className =
+      "px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800";
+
+    // Enable/disable reset button based on emergency state
+    const resetButton = document.getElementById("reset-emergency-button");
+    resetButton.disabled = !data.systemState.emergencyStop;
+  }
+
+  // Function to reset emergency stop
+  async function resetEmergencyStop() {
+    try {
+      const params = new URLSearchParams();
+      params.append("password", adminPassword);
+
+      const response = await fetch(
+        "http://localhost:3000/api/reset-emergency",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: params.toString(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      showToast("Emergency stop has been reset", "success");
+      fetchSystemStatus();
+    } catch (error) {
+      console.error("Error resetting emergency stop:", error);
+      showToast(`Error: ${error.message}`, "error");
+    }
+  }
+
+  // Initialize system status monitor
+  document.addEventListener("DOMContentLoaded", () => {
+    // Setup toggle monitor functionality
+    const toggleButton = document.getElementById("toggle-monitor");
+    const monitorCard = document.getElementById("system-status-card");
+    const monitorContent = monitorCard.querySelector(".space-y-2");
+    const resetButton = monitorCard.querySelector("#reset-emergency-button");
+
+    if (toggleButton && monitorContent && resetButton) {
+      let isHidden = localStorage.getItem("monitorHidden") === "true";
+
+      // Set initial state
+      if (isHidden) {
+        monitorContent.classList.add("hidden");
+        resetButton.classList.add("hidden");
+        toggleButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+          Show Monitor
+        `;
+      }
+
+      toggleButton.addEventListener("click", () => {
+        isHidden = !isHidden;
+        localStorage.setItem("monitorHidden", isHidden);
+
+        if (isHidden) {
+          monitorContent.classList.add("hidden");
+          resetButton.classList.add("hidden");
+          toggleButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+            </svg>
+            Show Monitor
+          `;
+        } else {
+          monitorContent.classList.remove("hidden");
+          resetButton.classList.remove("hidden");
+          toggleButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+            Hide Monitor
+          `;
+        }
+      });
+    }
+
+    // Setup emergency stop reset button
+    const emergencyResetBtn = document.getElementById("reset-emergency-button");
+    if (emergencyResetBtn) {
+      emergencyResetBtn.addEventListener("click", resetEmergencyStop);
+    }
+
+    // Start periodic system status updates
+    fetchSystemStatus();
+    systemStatusInterval = setInterval(fetchSystemStatus, 5000); // Update every 5 seconds
+  });
+
+  // Clean up interval when leaving the page
+  window.addEventListener("beforeunload", () => {
+    if (systemStatusInterval) {
+      clearInterval(systemStatusInterval);
+    }
+  });
+</script>
